@@ -100,6 +100,7 @@ marketmind/
 │   ├── main.py                     # FastAPI app + CORS
 │   ├── requirements.txt            # groq, fastapi, yfinance, pandas, ...
 │   ├── .env.example                # GROQ_API_KEY template
+│   ├── .gitignore                  # Backend ignores (venv, cache, secrets)
 │   │
 │   ├── agents/
 │   │   ├── llm_client.py           # Shared Groq client + model constants
@@ -115,10 +116,20 @@ marketmind/
 │       └── market.py               # GET /api/market/brief, /indices
 │
 └── frontend/
+    ├── index.html                  # Root HTML file (Vite entry point)
+    ├── package.json                # Frontend dependencies & scripts (React, Vite, etc.)
+    ├── package-lock.json           # Dependency lock file
+    ├── vite.config.js              # Vite configuration (dev server, build settings)
+    ├── eslint.config.js            # ESLint rules for code quality
+    ├── .gitignore                  # Ignore node_modules, build files, env files           
+    │
+    └── public/
+    │   ├── favicon.svg             # App favicon
+    │   ├── icons.svg               # Static icons/assets
     └── src/
         ├── App.jsx                 # Root + AnimatePresence routing
         ├── index.css               # Design system (dark terminal theme)
-        ├── main.jsx
+        ├── main.jsx                # App bootstrap + ReactDOM root rendering
         │
         ├── components/
         │   └── Sidebar.jsx         # Navigation + live indicator
