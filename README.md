@@ -1,5 +1,4 @@
 # MarketMind — AI for the Indian Investor
-### ET AI Hackathon 2026 | Problem Statement 6
 
 > **Signal-finder, not a summarizer** — bulk deals, insider trades, chart patterns, and AI-powered market analysis built for India's 14 crore+ demat account holders.
 
