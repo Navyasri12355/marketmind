@@ -3,25 +3,44 @@
 > **Signal-finder, not a summarizer** — bulk deals, insider trades, chart patterns, and AI-powered market analysis built for India's 14 crore+ demat account holders.
 
 ---
-
+ 
 ## 🚀 Quick Start
-
+ 
+### 1. Get a free Groq API key
+Sign up at **https://console.groq.com** (no credit card required), create an API key, and copy it.
+ 
+### 2. Configure the backend
 ```bash
-# 1. Clone / unzip the project
-cd marketmind
-
-# 2. Get a free Groq API key at https://console.groq.com (no credit card)
-cp backend/.env.example backend/.env
-# Edit backend/.env and paste your GROQ_API_KEY
-
-# 3. Run everything
-chmod +x run.sh
-./run.sh
+cd marketmind/backend
+cp .env.example .env
+# Open .env and set: GROQ_API_KEY=your_key_here
 ```
-
+ 
+### 3. Start the backend
+```bash
+cd marketmind/backend
+python -m venv venv
+ 
+# macOS / Linux
+source venv/bin/activate
+ 
+# Windows (PowerShell)
+.\venv\Scripts\Activate.ps1
+ 
+pip install -r requirements.txt
+uvicorn main:app --reload --port 8000
+```
+ 
+### 4. Start the frontend _(new terminal)_
+```bash
+cd marketmind/frontend
+npm install
+npm run dev
+```
+ 
 - **Frontend**: http://localhost:5173
 - **API Docs**: http://localhost:8000/docs
-
+ 
 ---
 
 ## 🏗 Architecture
@@ -91,8 +110,6 @@ All three AI agents share a single Groq client module. Models configured there:
 
 ```
 marketmind/
-├── run.sh                          # One-command startup (Bash)
-├── run.ps1                         # One-command startup (Powershell)
 ├── README.md
 │
 ├── backend/
