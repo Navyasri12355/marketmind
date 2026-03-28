@@ -3,6 +3,9 @@ MarketMind — AI for the Indian Investor
 Multi-agent backend: Opportunity Radar + Chart Intelligence + Market ChatGPT
 """
 
+from dotenv import load_dotenv
+load_dotenv()
+
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse

@@ -10,6 +10,11 @@ from agents.opportunity_radar import fetch_stock_data
 
 router = APIRouter()
 
+import requests
+session = requests.Session()
+session.headers.update({
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+})
 
 class AnalyzeRequest(BaseModel):
     ticker: str
@@ -33,14 +38,14 @@ async def get_patterns(ticker: str):
 
 @router.post("/analyze")
 async def analyze_chart(req: AnalyzeRequest):
-    """Stream Claude's technical analysis for a given ticker."""
+    """Stream technical analysis for a given ticker."""
     stock = yf.Ticker(req.ticker)
     hist = stock.history(period=req.period)
     patterns = detect_patterns(hist, req.ticker)
     stock_info = fetch_stock_data(req.ticker, "1mo")
 
     async def generate():
-        async for chunk in analyze_chart_with_claude(req.ticker, patterns, stock_info):
+        async for chunk in analyze_chart_with_llm(req.ticker, patterns, stock_info):
             yield f"data: {json.dumps({'text': chunk})}\n\n"
         yield f"data: {json.dumps({'done': True})}\n\n"
 
@@ -53,36 +58,39 @@ async def analyze_chart(req: AnalyzeRequest):
 
 @router.get("/search")
 async def search_stocks(q: str = ""):
-    """Search NSE stocks by name/ticker."""
-    NSE_STOCKS = [
-        {"ticker": "RELIANCE.NS", "name": "Reliance Industries", "sector": "Energy"},
-        {"ticker": "TCS.NS", "name": "Tata Consultancy Services", "sector": "IT"},
-        {"ticker": "HDFCBANK.NS", "name": "HDFC Bank", "sector": "Banking"},
-        {"ticker": "INFY.NS", "name": "Infosys", "sector": "IT"},
-        {"ticker": "ICICIBANK.NS", "name": "ICICI Bank", "sector": "Banking"},
-        {"ticker": "HINDUNILVR.NS", "name": "Hindustan Unilever", "sector": "FMCG"},
-        {"ticker": "ITC.NS", "name": "ITC Limited", "sector": "FMCG"},
-        {"ticker": "SBIN.NS", "name": "State Bank of India", "sector": "Banking"},
-        {"ticker": "BAJFINANCE.NS", "name": "Bajaj Finance", "sector": "NBFC"},
-        {"ticker": "BHARTIARTL.NS", "name": "Bharti Airtel", "sector": "Telecom"},
-        {"ticker": "KOTAKBANK.NS", "name": "Kotak Mahindra Bank", "sector": "Banking"},
-        {"ticker": "AXISBANK.NS", "name": "Axis Bank", "sector": "Banking"},
-        {"ticker": "ASIANPAINT.NS", "name": "Asian Paints", "sector": "Consumer"},
-        {"ticker": "MARUTI.NS", "name": "Maruti Suzuki", "sector": "Auto"},
-        {"ticker": "TITAN.NS", "name": "Titan Company", "sector": "Consumer"},
-        {"ticker": "WIPRO.NS", "name": "Wipro", "sector": "IT"},
-        {"ticker": "TATAMOTORS.NS", "name": "Tata Motors", "sector": "Auto"},
-        {"ticker": "SUNPHARMA.NS", "name": "Sun Pharma", "sector": "Pharma"},
-        {"ticker": "DRREDDY.NS", "name": "Dr. Reddy's Labs", "sector": "Pharma"},
-        {"ticker": "CIPLA.NS", "name": "Cipla", "sector": "Pharma"},
-        {"ticker": "HCLTECH.NS", "name": "HCL Technologies", "sector": "IT"},
-        {"ticker": "NTPC.NS", "name": "NTPC", "sector": "Power"},
-        {"ticker": "ONGC.NS", "name": "ONGC", "sector": "Oil & Gas"},
-        {"ticker": "JSWSTEEL.NS", "name": "JSW Steel", "sector": "Metals"},
-        {"ticker": "TATASTEEL.NS", "name": "Tata Steel", "sector": "Metals"},
-    ]
     if not q:
-        return NSE_STOCKS[:10]
-    q_lower = q.lower()
-    filtered = [s for s in NSE_STOCKS if q_lower in s["name"].lower() or q_lower in s["ticker"].lower()]
-    return filtered[:8]
+        return []
+    import httpx
+    try:
+        url = "https://query1.finance.yahoo.com/v1/finance/search"
+        params = {
+            "q": q,
+            "quotesCount": 10,
+            "newsCount": 0,
+            "enableFuzzyQuery": True,
+            "region": "IN",
+        }
+        headers = {"User-Agent": "Mozilla/5.0"}
+        async with httpx.AsyncClient() as client:
+            resp = await client.get(url, params=params, headers=headers, timeout=5)
+            data = resp.json()
+
+        results = []
+        INDIAN_EXCHANGES = {"NSI", "BSE", "NSE", "BOM"}
+        for item in data.get("quotes", []):
+            type_ = item.get("quoteType", "")
+            exchange = item.get("exchange", "")
+            if type_ not in ("EQUITY", "INDEX"):
+                continue
+            if exchange not in INDIAN_EXCHANGES:
+                continue
+            results.append({
+                "ticker": item.get("symbol", ""),
+                "name":   item.get("longname") or item.get("shortname", ""),
+                "sector": item.get("sector", ""),
+                "type":   type_.lower(),
+            })
+        return results[:8]
+
+    except Exception:
+        return []

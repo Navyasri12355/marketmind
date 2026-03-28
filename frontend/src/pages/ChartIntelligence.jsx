@@ -18,7 +18,7 @@ const POPULAR = [
   { ticker: 'TCS.NS', name: 'TCS' },
   { ticker: 'HDFCBANK.NS', name: 'HDFC Bank' },
   { ticker: 'INFY.NS', name: 'Infosys' },
-  { ticker: 'TATAMOTORS.NS', name: 'Tata Motors' },
+  { ticker: 'WIPRO.NS', name: 'Wipro' },
 ]
 
 function CustomTooltip({ active, payload, label }) {
@@ -208,7 +208,10 @@ export default function ChartIntelligence() {
                   onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
                 >
                   <span>{s.name}</span>
-                  <span style={{ color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', fontSize: 11 }}>{s.ticker.replace('.NS', '')}</span>
+                  <span style={{ color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', fontSize: 11 }}>
+                    {s.ticker.replace('.NS', '')}
+                    {s.type === 'index' && <span style={{ marginLeft: 6, color: 'var(--amber)', fontSize: 10 }}>INDEX</span>}
+                  </span>
                 </div>
               ))}
             </div>

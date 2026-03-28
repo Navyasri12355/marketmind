@@ -6,6 +6,7 @@ import json
 from typing import AsyncIterator
 import yfinance as yf
 from agents.llm_client import get_client, MODEL_SMART
+from agents.opportunity_radar import cached_history
 
 SYSTEM_PROMPT = """You are MarketMind — India's most intelligent AI investment analyst, embedded in ET Markets.
 
@@ -36,16 +37,21 @@ FORMAT:
 - End substantive answers with "📊 Key level to watch: ₹X" when applicable
 - Keep responses focused and under 400 words unless deep analysis is asked"""
 
+STOCK_MAP = {
+    "reliance": "RELIANCE.NS", "tcs": "TCS.NS", "infosys": "INFY.NS",
+    "infy": "INFY.NS", "hdfc": "HDFCBANK.NS", "hdfcbank": "HDFCBANK.NS",
+    "icici": "ICICIBANK.NS", "sbi": "SBIN.NS", "bajaj finance": "BAJFINANCE.NS",
+    "bajfinance": "BAJFINANCE.NS", "airtel": "BHARTIARTL.NS", "bhartiartl": "BHARTIARTL.NS",
+    "wipro": "WIPRO.NS", "maruti": "MARUTI.NS", "titan": "TITAN.NS",
+    "nifty": "^NSEI", "sensex": "^BSESN", "bank nifty": "^NSEBANK",
+    "hcl": "HCLTECH.NS", "hcltech": "HCLTECH.NS",
+    "sun pharma": "SUNPHARMA.NS", "sunpharma": "SUNPHARMA.NS",
+    "cipla": "CIPLA.NS", "drreddy": "DRREDDY.NS", "kotak": "KOTAKBANK.NS",
+    "axis": "AXISBANK.NS", "ntpc": "NTPC.NS", "itc": "ITC.NS",
+}
+
 
 def fetch_quick_context(query: str) -> dict:
-    STOCK_MAP = {
-        "reliance": "RELIANCE.NS", "tcs": "TCS.NS", "infosys": "INFY.NS",
-        "hdfc": "HDFCBANK.NS", "icici": "ICICIBANK.NS", "sbi": "SBIN.NS",
-        "bajaj finance": "BAJFINANCE.NS", "airtel": "BHARTIARTL.NS",
-        "wipro": "WIPRO.NS", "maruti": "MARUTI.NS", "titan": "TITAN.NS",
-        "tatamotors": "TATAMOTORS.NS", "nifty": "^NSEI", "sensex": "^BSESN",
-        "bank nifty": "^NSEBANK", "hcl": "HCLTECH.NS",
-    }
     q = query.lower()
     tickers = [v for k, v in STOCK_MAP.items() if k in q]
     if "^NSEI" not in tickers:
@@ -54,7 +60,7 @@ def fetch_quick_context(query: str) -> dict:
     context = {}
     for ticker in tickers[:3]:
         try:
-            hist = yf.Ticker(ticker).history(period="5d")
+            hist = cached_history(ticker, "5d")
             if len(hist) >= 2:
                 curr = float(hist.iloc[-1]["Close"])
                 prev = float(hist.iloc[-2]["Close"])
@@ -105,10 +111,10 @@ async def stream_chat_response(
 
 
 async def generate_market_brief() -> dict:
-    try:
-        result = {"indices": []}
-        for ticker, name in [("^NSEI","Nifty 50"),("^BSESN","Sensex"),("^NSEBANK","Bank Nifty")]:
-            h = yf.Ticker(ticker).history(period="2d")
+    result = {"indices": []}
+    for ticker, name in [("^NSEI", "Nifty 50"), ("^BSESN", "Sensex"), ("^NSEBANK", "Bank Nifty")]:
+        try:
+            h = cached_history(ticker, "2d")
             if len(h) >= 2:
                 curr = float(h.iloc[-1]["Close"])
                 prev = float(h.iloc[-2]["Close"])
@@ -117,10 +123,6 @@ async def generate_market_brief() -> dict:
                     "value": round(curr, 0),
                     "change": round((curr - prev) / prev * 100, 2),
                 })
-        return result
-    except Exception:
-        return {"indices": [
-            {"name":"Nifty 50",   "value":24350, "change": 0.42},
-            {"name":"Sensex",     "value":80120, "change": 0.38},
-            {"name":"Bank Nifty", "value":52100, "change":-0.15},
-        ]}
+        except Exception:
+            pass
+    return result
