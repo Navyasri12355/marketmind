@@ -359,7 +359,7 @@ export default function ChartIntelligence() {
           }}>
             {!analysis && !analysing && (
               <div style={{ color: 'var(--text-muted)', fontSize: 13, textAlign: 'center', paddingTop: 60 }}>
-                Click "Analyse" to get a local AI technical read on {ticker.replace('.NS', '')}
+                Click "Analyse" to get Claude's technical read on {ticker.replace('.NS', '')}
               </div>
             )}
             {analysing && !analysis && (

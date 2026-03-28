@@ -33,14 +33,14 @@ async def get_patterns(ticker: str):
 
 @router.post("/analyze")
 async def analyze_chart(req: AnalyzeRequest):
-    """Stream local LLM technical analysis for a given ticker."""
+    """Stream Claude's technical analysis for a given ticker."""
     stock = yf.Ticker(req.ticker)
     hist = stock.history(period=req.period)
     patterns = detect_patterns(hist, req.ticker)
     stock_info = fetch_stock_data(req.ticker, "1mo")
 
     async def generate():
-        async for chunk in analyze_chart_with_llm(req.ticker, patterns, stock_info):
+        async for chunk in analyze_chart_with_claude(req.ticker, patterns, stock_info):
             yield f"data: {json.dumps({'text': chunk})}\n\n"
         yield f"data: {json.dumps({'done': True})}\n\n"
 
