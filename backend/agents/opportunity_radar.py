@@ -370,11 +370,18 @@ async def run_opportunity_radar(limit: int = 8) -> AsyncIterator[str]:
         if merged.get("price", 0) > 0:
             enriched.append(merged)
 
-    # Detect all signals
-    all_signals = []
+    # Detect signals — one per stock maximum (highest confidence wins)
+    raw_signals = []
     for stock in enriched:
         sigs = detect_signals(stock)
-        all_signals.extend(sigs)
+        raw_signals.extend(sigs)
+
+    best_per_ticker = {}
+    for sig in raw_signals:
+        t = sig["ticker"]
+        if t not in best_per_ticker or sig["confidence"] > best_per_ticker[t]["confidence"]:
+            best_per_ticker[t] = sig
+    all_signals = list(best_per_ticker.values())
 
     yield f"data: {json.dumps({'type':'status','message':f'{len(all_signals)} signals found — ranking with Llama 3.3 70B...'})}\n\n"
 
@@ -382,7 +389,7 @@ async def run_opportunity_radar(limit: int = 8) -> AsyncIterator[str]:
         yield f"data: {json.dumps({'type':'status','message':'No signals detected — market may be very quiet today.'})}\n\n"
         yield f"data: {json.dumps({'type':'done','count':0})}\n\n"
         return
-    
+
     actual_limit = min(limit, len(all_signals))
 
     # Rank with LLM
