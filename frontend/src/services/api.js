@@ -100,3 +100,8 @@ export async function* streamChartAnalysis(ticker, period = '6mo') {
     }
   }
 }
+
+export async function fetchTopMovers() {
+  const r = await fetch(`${BASE}/market/movers`)
+  return r.json()
+}
