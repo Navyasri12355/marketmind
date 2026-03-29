@@ -4,7 +4,7 @@
 
 ---
  
-## 🚀 Quick Start
+## Quick Start
  
 ### 1. Get a free Groq API key
 Sign up at **https://console.groq.com** (no credit card required), create an API key, and copy it.
@@ -43,7 +43,7 @@ npm run dev
  
 ---
 
-## 🏗 Architecture
+## Architecture
 
 ```
 ┌─────────────────────────────────────────────────────────┐
@@ -106,7 +106,7 @@ All three AI agents share a single Groq client module. Models configured there:
 
 ---
 
-## 📁 File Structure
+## File Structure
 
 ```
 marketmind/
@@ -163,7 +163,7 @@ marketmind/
 
 ---
 
-## 💰 Impact Model
+## Impact Model
 
 ### Problem Scale
 - 14.2 crore demat accounts in India (SEBI, 2024)
@@ -191,7 +191,7 @@ marketmind/
 
 ---
 
-## 🔧 Tech Stack
+## Tech Stack
 
 | Layer | Technology | Why |
 |-------|-----------|-----|
